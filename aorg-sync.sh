@@ -6,7 +6,7 @@
 #
 # Requirements:
 #
-#   curl, jq, md5sum, GNU coreutils/sed/grep
+#   curl, jq, md5sum, GNU coreutils, sed, grep, awk
 #
 # This is free and unencumbered software released into the public domain.
 # xristos@sdf.org
