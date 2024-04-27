@@ -1,4 +1,4 @@
-aorg-sync.sh synchronizes a remote archive.org item folder with the local directory.
+~aorg-sync.sh~ synchronizes a remote archive.org item folder with the local directory.
 
 It tries to minimize network traffic by checking file sizes, last modified times and
 md5 hashes against item metadata exposed by archive.org.
