@@ -3,6 +3,22 @@ aorg-sync.sh synchronizes a remote archive.org item folder with the local direct
 It tries to minimize network traffic by checking file sizes, last modified times and
 md5 hashes against item metadata exposed by archive.org.
 
+* Usage
+
+You can run this on the Mister or on another Linux host.
+
+#+BEGIN_SRC shell-script
+cp aorg-sync.sh /media/fat/Scripts
+mkdir -p /media/fat/games/AO486/0mhz && cd /media/fat/games/AO486/0mhz
+/media/fat/Scripts/aorg-sync.sh # Will proceed to sync into /media/fat/games/AO486/0mhz
+#+END_SRC
+
+All user-configuration options can be overridden through the environment:
+
+#+BEGIN_SRC shell-script
+REMOTE=foo aorg-sync.sh
+#+END_SRC
+
 * License
 This is free and unencumbered software released into the public domain.
 
