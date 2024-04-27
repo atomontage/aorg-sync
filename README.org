@@ -23,6 +23,10 @@ If you're executing this script on macOS or another BSD, you'll need GNU coreuti
 installed (e.g. from macports or homebrew) as the BSD versions of ~touch~ and
 ~stat~ do not support the same features.
 
+If the script is reporting a ~self signed certificate in certificate chain~ error,
+follow the directions shown [[https://boogermann.github.io/Bible_MiSTer/getting-started/how-to-use/#fixing-missing-certificates][here]] to install missing certificates,
+or run the script with ~--no-check-cert~.
+
 * License
 This is free and unencumbered software released into the public domain.
 

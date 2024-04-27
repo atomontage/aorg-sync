@@ -50,6 +50,7 @@ do_force=0
 do_delete=0
 skip_mtime=1
 force_mtime=1
+check_cert=1
 
 # Stats
 new=0
@@ -75,6 +76,7 @@ function usage {
   echo -e "  --no-mtime        do not check mtime to skip checking files whose size hasn't changed,"
   echo -e "                    hash every file"
   echo -e "  --no-force-mtime  do not auto-update mtime for every processed file"
+  echo -e "  --no-check-cert   do not verify SSL certificates"
   echo
 }
 
@@ -297,6 +299,9 @@ while :; do
     --no-force-mtime)
       force_mtime=0
       ;;
+    --no-check-cert)
+      check_cert=0
+      ;;
     --)
       shift
       break
@@ -316,6 +321,9 @@ done
 # End of argument parsing
 #
 
+if [ "$check_cert" -eq 0 ]; then
+  CURL_ARGS+=(-k)
+fi
 
 fetch_metadata
 fetch_index
