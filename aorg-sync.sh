@@ -63,7 +63,7 @@ hashed=0
 exitcode=0
 
 function usage {
-  echo "Usage: $0 [--prompt] [--force] [--delete] [--no-mtime] [--no-force-mtime]"
+  echo "Usage: $0 [--force] [--delete] [--no-index] [--no-prompt] [--no-mtime] [--no-force-mtime] [--no-check-cert]"
   echo -e "  --force           force processing even if index hasn't changed"
   echo -e "                    ignored if --no-index is used"
   echo -e "  --delete          delete files that have been removed from the index"
@@ -101,8 +101,14 @@ function fetch_index {
   fi
   # Check local index if it exists
   if [ -e "${REMOTE}_files.xml" ]; then
-    # Hash it to see if it has changed
-    if check_hash "${REMOTE}_files.xml" "$index_md5"; then
+    # We can't hash the file directly, but we can check whether the hash it contains
+    # for ${REMOTE}_files.xml matches the hash we retrieved through the JSON API.
+    local hash
+    hash="$(grep -Pzo "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
+                 grep -Poz '<md5>.*</md5>' |
+                 sed -E 's/<\/?md5>//g' |
+                 tr -d '\000')"
+    if [ "$hash" = "$index_md5" ]; then
       if [ "$do_prompt" -eq 1 ]; then
         read -n1 -r -p "[-] No changes to index, continue (y/n)? " reply
         echo
@@ -125,9 +131,6 @@ function fetch_index {
   printf '[+] Downloading %s to %s\n' "$index" "${REMOTE}_files.xml"
   if ! curl "${CURL_ARGS[@]}" -o "${REMOTE}_files.xml" "$index"; then
    return 1
-  fi
-  if ! check_hash "${REMOTE}_files.xml" "$index_md5"; then
-    printf '[!] Failed MD5 check, expected: %s\n' "$index_md5"
   fi
 }
 
@@ -284,14 +287,17 @@ while :; do
       usage
       exit 0
       ;;
-    --prompt)
-      do_prompt=1
-      ;;
     --force)
       do_force=1
       ;;
     --delete)
       do_delete=1
+      ;;
+    --no-index)
+      do_index=0
+      ;;
+    --no-prompt)
+      do_prompt=0
       ;;
     --no-mtime)
       skip_mtime=0
