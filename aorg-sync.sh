@@ -31,6 +31,10 @@ set -e
 # End of user configuration
 #
 
+# Auto-set to pcregrep if found, otherwise use GNU grep as fallback.
+mgrep="grep"
+MGREP_ARGS=(-o)
+
 CURL_ARGS=(--create-dirs -RSLf#)
 
 index="${BASE}/download/${REMOTE}/${REMOTE}_files.xml"
@@ -104,8 +108,8 @@ function fetch_index {
     # We can't hash the file directly, but we can check whether the hash it contains
     # for ${REMOTE}_files.xml matches the hash we retrieved through the JSON API.
     local hash
-    hash="$(grep -Poz "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
-                 grep -Poz '<md5>.*</md5>' |
+    hash="$("${mgrep}" "${MGREP_ARGS[@]}" "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
+                 "${mgrep}" "${MGREP_ARGS[@]}" '<md5>.*</md5>' |
                  sed -E 's/<\/?md5>//g' |
                  tr -d '\000')"
     if [ "$hash" = "$index_md5" ]; then
@@ -329,6 +333,13 @@ done
 
 if [ "$check_cert" -eq 0 ]; then
   CURL_ARGS+=(-k)
+fi
+
+if type -P pcregrep >/dev/null; then
+  mgrep="pcregrep"
+  MGREP_ARGS+=(-M)
+else
+  MGREP_ARGS+=(-Pz)
 fi
 
 fetch_metadata
