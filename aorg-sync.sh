@@ -6,7 +6,7 @@
 #
 # Requirements:
 #
-#   curl, jq, md5sum, GNU coreutils, sed, grep, awk
+#   curl, jq, md5sum, GNU coreutils, GNU find, sed, pcregrep|GNU grep, awk
 #
 # This is free and unencumbered software released into the public domain.
 # xristos@sdf.org
@@ -23,9 +23,11 @@ set -e
 # https://archive.org/details/[identifier]
 : "${REMOTE:=0mhz-dos}"
 
-# Change these to GNU on macOS as BSD versions will not do
+# Change these to GNU (e.g. gstat, gtouch, gfind installed from macports) on macOS
+# as the built-ins (BSD) do not support all features needed.
 : "${STAT:=stat}"
 : "${TOUCH:=touch}"
+: "${FIND:=find}"
 
 #
 # End of user configuration
@@ -108,8 +110,8 @@ function fetch_index {
     # We can't hash the file directly, but we can check whether the hash it contains
     # for ${REMOTE}_files.xml matches the hash we retrieved through the JSON API.
     local hash
-    hash="$("${mgrep}" "${MGREP_ARGS[@]}" "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
-                 "${mgrep}" "${MGREP_ARGS[@]}" '<md5>.*</md5>' |
+    hash="$("$mgrep" "${MGREP_ARGS[@]}" "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
+                 "$mgrep" "${MGREP_ARGS[@]}" '<md5>.*</md5>' |
                  sed -E 's/<\/?md5>//g' |
                  tr -d '\000')"
     if [ "$hash" = "$index_md5" ]; then
@@ -247,7 +249,7 @@ function diff_files {
   done <<< "$md_parsed"
   md_removed="$(comm -13 \
                   <(cut -d' ' -f4- <<< "$md_parsed" | sort) \
-                  <(for f in *; do echo "$f"; done | grep -Ev '(.xml$|.sh$)' | sort))"
+                  <("$FIND" . -type f -printf "%P\n" | grep -v "$(basename "$0")" | sort))"
   if [ -n "$md_removed" ]; then
     while read -r file ; do
       printf '[##] %s\n' "$file"
