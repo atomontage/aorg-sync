@@ -31,7 +31,7 @@ set -e
 # End of user configuration
 #
 
-CURL_ARGS=(-RSLf#)
+CURL_ARGS=(--create-dirs -RSLf#)
 
 index="${BASE}/download/${REMOTE}/${REMOTE}_files.xml"
 index_md5=""
@@ -104,7 +104,7 @@ function fetch_index {
     # We can't hash the file directly, but we can check whether the hash it contains
     # for ${REMOTE}_files.xml matches the hash we retrieved through the JSON API.
     local hash
-    hash="$(grep -Pzo "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
+    hash="$(grep -Poz "(?s)<file name=\"${REMOTE}_files.xml.*?</file>" ${REMOTE}_files.xml |
                  grep -Poz '<md5>.*</md5>' |
                  sed -E 's/<\/?md5>//g' |
                  tr -d '\000')"
