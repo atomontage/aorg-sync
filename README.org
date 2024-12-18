@@ -19,6 +19,12 @@ All user-configuration options can be overridden through the environment:
 REMOTE=foo ./aorg-sync.sh # Will sync https://archive.org/download/foo
 #+END_SRC
 
+They can also be set in a user configuration file (~$HOME/.aorg-sync.rc~):
+
+#+BEGIN_SRC shell-script
+$ echo CURL_EXTRA_ARGS="--verbose" >> ~/.aorg-sync.rc
+#+END_SRC
+
 If you're executing this script on macOS or another BSD, you'll need GNU coreutils,
 GNU grep (or pcregrep) and GNU find installed (e.g. from macports or homebrew)
 as the BSD versions of ~touch~, ~grep~, ~find~ and ~stat~ do not support the same

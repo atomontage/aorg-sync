@@ -13,9 +13,20 @@
 
 set -e
 
+
 #
 # Configuration
 #
+
+
+CONFIG=~/.aorg-sync.rc
+
+if [ -f "${CONFIG}" ]; then
+  source "${CONFIG}"
+fi
+
+# All of the following user configuration variables can be set in
+# ~/.aorg-sync.rc
 
 : "${BASE:=https://archive.org}"
 
@@ -23,21 +34,27 @@ set -e
 # https://archive.org/details/[identifier]
 : "${REMOTE:=0mhz-dos}"
 
-# Change these to GNU (e.g. gstat, gtouch, gfind installed from macports) on macOS
-# as the built-ins (BSD) do not support all features needed.
+: "${CURL_EXTRA_ARGS:=}"
+
+# On macOS, change these to GNU (e.g. gstat, gtouch, gfind, ggrep from macports)
+# as the BSD built-ins do not support all features needed.
 : "${STAT:=stat}"
 : "${TOUCH:=touch}"
 : "${FIND:=find}"
+: "${GREP:=grep}"
+
 
 #
 # End of user configuration
 #
 
-# Auto-set to pcregrep if found, otherwise use GNU grep as fallback.
-mgrep="grep"
+
+# Automatically set to pcregrep if found, otherwise GNU grep is used.
+mgrep="$GREP"
 MGREP_ARGS=(-o)
 
 CURL_ARGS=(--create-dirs -RSLf#)
+CURL_ARGS+=($CURL_EXTRA_ARGS)
 
 index="${BASE}/download/${REMOTE}/${REMOTE}_files.xml"
 index_md5=""
@@ -332,6 +349,7 @@ done
 #
 # End of argument parsing
 #
+
 
 if [ "$check_cert" -eq 0 ]; then
   CURL_ARGS+=(-k)
