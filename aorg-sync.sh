@@ -73,6 +73,7 @@ do_force=0
 do_delete=0
 skip_mtime=1
 force_mtime=1
+strict_mtime=0
 check_cert=1
 
 # Stats
@@ -98,6 +99,8 @@ function usage {
   echo -e "                    if --force, continue, otherwise exit"
   echo -e "  --no-mtime        do not check mtime to skip checking files whose size hasn't changed,"
   echo -e "                    hash every file"
+  echo -e "  --strict-mtime    do not skip checking a file if mtime difference is '1', this is useful"
+  echo -e "                    on non-exfat filesystems that have a better than 2s mtime resolution"
   echo -e "  --no-force-mtime  do not auto-update mtime for every processed file"
   echo -e "  --no-check-cert   do not verify SSL certificates"
   echo
@@ -242,9 +245,10 @@ function diff_files {
         # Exists but size is identical
         if [ "$skip_mtime" -eq 1 ]; then
           # Skip processing if mtime is identical
-          local lmtime
+          local lmtime diff
           lmtime="$("$STAT" -c %Y "$file")"
-          if [ "$lmtime" = "$mtime" ]; then
+          diff=$(("$lmtime" >= "$mtime" ? "$lmtime" - "$mtime" : "$mtime" - "$lmtime"))
+          if [[ "$lmtime" == "$mtime" || ( "$strict_mtime" == 0 && "$diff" == 1 ) ]]; then
             printf '[..] %s\n' "$file"
             continue
           fi
@@ -327,6 +331,9 @@ while :; do
       ;;
     --no-force-mtime)
       force_mtime=0
+      ;;
+    --strict-mtime)
+      strict_mtime=1
       ;;
     --no-check-cert)
       check_cert=0
