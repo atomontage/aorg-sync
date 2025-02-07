@@ -115,7 +115,7 @@ function fetch_metadata {
                       <<< "$md_json")"; then
      return 1
   fi
-  if ! index_md5="$(grep -E " ${REMOTE}_files.xml$" <<< "$md_parsed" | awk '{print $1}')"; then
+  if ! index_md5="$(set -o pipefail; grep -E " ${REMOTE}_files.xml$" <<< "$md_parsed" | awk '{print $1}')"; then
     printf '[!] Missing %s_files.xml" in metadata JSON response\n' "${REMOTE}"
     return 1
   fi
@@ -165,8 +165,8 @@ function check_hash {
   file="$1"
   md5="$2"
 
-  if ! lmd5="$(md5sum "$file" | awk '{print $1}')"; then
-    return 1
+  if ! lmd5="$(set -o pipefail; md5sum "$file" | awk '{print $1}')"; then
+    exit 1
   fi
   if [ "$lmd5" != "$md5" ]; then
     return 1
@@ -182,7 +182,9 @@ function check_downloaded_file {
   size="$3"
   mtime="$4"
 
-  lsize="$(du -b "${file}.new" | awk '{print $1}')"
+  if ! lsize="$(set -o pipefail; du -b "${file}.new" | awk '{print $1}')"; then
+    exit 1
+  fi
   if [ "$lsize" = "$size" ]; then
     # Check hash
     if ! check_hash "${file}.new" "$md5"; then
@@ -234,7 +236,9 @@ function diff_files {
       ((new++)) || true
     else
       local lsize
-      lsize="$(du -b "$file" | awk '{print $1}')"
+      if ! lsize="$(set -o pipefail; du -b "$file" | awk '{print $1}')"; then
+        exit 1
+      fi
       if [ "$lsize" != "$size" ]; then
         # Exists but size differs
         printf '[+s] %s\n' "$file"
